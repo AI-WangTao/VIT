@@ -27,11 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 """
-训练参数：
---name cifar10-100_500 
---dataset cifar10 
---model_type ViT-B_16 
---pretrained_dir checkpoint/ViT-B_16.npz
+训练参数 python train.py --name cifar10-100_500 --dataset cifar10 --model_type ViT-B_16 --pretrained_dir checkpoint/ViT-B_16.npz
 """
 class AverageMeter(object):
     """Computes and stores the average and current value"""

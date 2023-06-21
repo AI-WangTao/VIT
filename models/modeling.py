@@ -69,49 +69,49 @@ class Attention(nn.Module):
 
     def transpose_for_scores(self, x):
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
-        print(new_x_shape)
+        # print(new_x_shape)
         x = x.view(*new_x_shape)
-        print(x.shape)
-        print(x.permute(0, 2, 1, 3).shape)
+        # print(x.shape)
+        # print(x.permute(0, 2, 1, 3).shape)
         return x.permute(0, 2, 1, 3)
 
     def forward(self, hidden_states):
-        print(hidden_states.shape)
+        # print(hidden_states.shape)
         mixed_query_layer = self.query(hidden_states)#Linear(in_features=768, out_features=768, bias=True)
-        print(mixed_query_layer.shape)
+        # print(mixed_query_layer.shape)
         mixed_key_layer = self.key(hidden_states)
-        print(mixed_key_layer.shape)
+        # print(mixed_key_layer.shape)
         mixed_value_layer = self.value(hidden_states)
-        print(mixed_value_layer.shape)
+        # print(mixed_value_layer.shape)
 
         query_layer = self.transpose_for_scores(mixed_query_layer)
-        print(query_layer.shape)
+        # print(query_layer.shape)
         key_layer = self.transpose_for_scores(mixed_key_layer)
-        print(key_layer.shape)
+        # print(key_layer.shape)
         value_layer = self.transpose_for_scores(mixed_value_layer)
-        print(value_layer.shape)
+        # print(value_layer.shape)
 
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
-        print(attention_scores.shape)
+        # print(attention_scores.shape)
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
-        print(attention_scores.shape)
+        # print(attention_scores.shape)
         attention_probs = self.softmax(attention_scores)
-        print(attention_probs.shape)
+        # print(attention_probs.shape)
         weights = attention_probs if self.vis else None
         attention_probs = self.attn_dropout(attention_probs)
-        print(attention_probs.shape)
+        # print(attention_probs.shape)
 
         context_layer = torch.matmul(attention_probs, value_layer)
-        print(context_layer.shape)
+        # print(context_layer.shape)
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-        print(context_layer.shape)
+        # print(context_layer.shape)
         new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
         context_layer = context_layer.view(*new_context_layer_shape)
-        print(context_layer.shape)
+        # print(context_layer.shape)
         attention_output = self.out(context_layer)
-        print(attention_output.shape)
+        # print(attention_output.shape)
         attention_output = self.proj_dropout(attention_output)
-        print(attention_output.shape)
+        # print(attention_output.shape)
         return attention_output, weights
 
 
@@ -172,25 +172,25 @@ class Embeddings(nn.Module):
         self.dropout = Dropout(config.transformer["dropout_rate"])
 
     def forward(self, x):
-        print(x.shape)
+        # print(x.shape)
         B = x.shape[0]
         cls_tokens = self.cls_token.expand(B, -1, -1)
-        print(cls_tokens.shape)
+        # print(cls_tokens.shape)
         if self.hybrid:
             x = self.hybrid_model(x)
         x = self.patch_embeddings(x)#Conv2d: Conv2d(3, 768, kernel_size=(16, 16), stride=(16, 16))
-        print(x.shape)
+        # print(x.shape)
         x = x.flatten(2)
-        print(x.shape)
+        # print(x.shape)
         x = x.transpose(-1, -2)
-        print(x.shape)
+        # print(x.shape)
         x = torch.cat((cls_tokens, x), dim=1)
-        print(x.shape)
+        # print(x.shape)
 
         embeddings = x + self.position_embeddings
-        print(embeddings.shape)
+        # print(embeddings.shape)
         embeddings = self.dropout(embeddings)
-        print(embeddings.shape)
+        # print(embeddings.shape)
         return embeddings
 
 
@@ -204,21 +204,21 @@ class Block(nn.Module):
         self.attn = Attention(config, vis)
 
     def forward(self, x):
-        print(x.shape)
+        # print(x.shape)
         h = x
         x = self.attention_norm(x)
-        print(x.shape)
+        # print(x.shape)
         x, weights = self.attn(x)
         x = x + h
-        print(x.shape)
+        # print(x.shape)
 
         h = x
         x = self.ffn_norm(x)
-        print(x.shape)
+        # print(x.shape)
         x = self.ffn(x)
-        print(x.shape)
+        # print(x.shape)
         x = x + h
-        print(x.shape)
+        # print(x.shape)
         return x, weights
 
     def load_from(self, weights, n_block):
@@ -307,7 +307,7 @@ class Encoder(nn.Module):
             self.layer.append(copy.deepcopy(layer))
 
     def forward(self, hidden_states):
-        print(hidden_states.shape)
+        # print(hidden_states.shape)
         attn_weights = []
         for layer_block in self.layer:
             hidden_states, weights = layer_block(hidden_states)
@@ -341,9 +341,9 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x, labels=None):
         x, attn_weights = self.transformer(x)
-        print(x.shape)
+        # print(x.shape)
         logits = self.head(x[:, 0])
-        print(logits.shape)
+        # print(logits.shape)
 
         if labels is not None:
             loss_fct = CrossEntropyLoss()
